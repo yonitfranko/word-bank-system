@@ -1,9 +1,23 @@
 'use client';
 import React, { useState } from 'react';
 
+// רשימת הפרסים המלאה
+const REWARDS = [
+    { id: 1, name: 'שעת יצירה', cost: 50 },
+    { id: 2, name: 'זמן משחק כיתתי', cost: 60 },
+    { id: 3, name: 'זמן מחשבים', cost: 70 },
+    { id: 4, name: 'סרט עם פופקורן', cost: 80 },
+    { id: 5, name: 'שיעור לבחירה', cost: 100 },
+    { id: 6, name: 'שיעור חופשי', cost: 200 },
+    { id: 7, name: 'יום ללא תיק', cost: 600 },
+    { id: 8, name: 'סרט במדיה טק', cost: 700 },
+    { id: 9, name: 'פעילות גיבוש כיתתית', cost: 800 }
+];
+
 export default function HomePage() {
     const [selectedClass, setSelectedClass] = useState('');
     const [points, setPoints] = useState({});
+    const [history, setHistory] = useState([]);
     const classes = ['א1', 'א2', 'א3', 'א4', 'ב1', 'ב2', 'ב3', 'ב4'];
 
     const addPoints = (classId, amount) => {
@@ -11,6 +25,33 @@ export default function HomePage() {
             ...prev,
             [classId]: (prev[classId] || 0) + amount
         }));
+        setHistory(prev => [...prev, {
+            date: new Date().toLocaleDateString('he-IL'),
+            class: classId,
+            points: amount,
+            type: 'earned'
+        }]);
+    };
+
+    const buyReward = (reward) => {
+        if (!selectedClass) return;
+        const currentPoints = points[selectedClass] || 0;
+        if (currentPoints >= reward.cost) {
+            setPoints(prev => ({
+                ...prev,
+                [selectedClass]: prev[selectedClass] - reward.cost
+            }));
+            setHistory(prev => [...prev, {
+                date: new Date().toLocaleDateString('he-IL'),
+                class: selectedClass,
+                points: -reward.cost,
+                reward: reward.name,
+                type: 'spent'
+            }]);
+            alert(`פרס נקנה בהצלחה: ${reward.name}`);
+        } else {
+            alert('אין מספיק נקודות לקניית הפרס');
+        }
     };
 
     return (
@@ -54,14 +95,48 @@ export default function HomePage() {
                         </button>
                     </div>
 
-                    {points[selectedClass] > 0 && (
-                        <div className="bg-blue-50 p-4 rounded-lg mt-4">
-                            <h3 className="text-lg font-bold mb-2">פרסים אפשריים:</h3>
-                            <ul className="space-y-2">
-                                {points[selectedClass] >= 50 && <li className="text-right">✓ שעת יצירה (50 נקודות)</li>}
-                                {points[selectedClass] >= 100 && <li className="text-right">✓ שיעור לבחירה (100 נקודות)</li>}
-                                {points[selectedClass] >= 200 && <li className="text-right">✓ שיעור חופשי (200 נקודות)</li>}
-                            </ul>
+                    <div className="bg-blue-50 p-4 rounded-lg mt-4">
+                        <h3 className="text-lg font-bold mb-4 text-right">פרסים זמינים:</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {REWARDS.map(reward => (
+                                <div
+                                    key={reward.id}
+                                    className={`p-4 rounded-lg border ${(points[selectedClass] || 0) >= reward.cost ? 'bg-white' : 'bg-gray-100'}`}
+                                >
+                                    <div className="text-right mb-2">
+                                        <span className="font-bold">{reward.name}</span>
+                                        <span className="text-gray-600"> - {reward.cost} נקודות</span>
+                                    </div>
+                                    <button
+                                        onClick={() => buyReward(reward)}
+                                        disabled={(points[selectedClass] || 0) < reward.cost}
+                                        className={`w-full py-2 rounded ${(points[selectedClass] || 0) >= reward.cost
+                                                ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                            }`}
+                                    >
+                                        {(points[selectedClass] || 0) >= reward.cost ? 'קנה פרס' : 'אין מספיק נקודות'}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {history.length > 0 && (
+                        <div className="mt-8">
+                            <h3 className="text-lg font-bold mb-4 text-right">היסטוריית פעילות:</h3>
+                            <div className="space-y-2">
+                                {history
+                                    .filter(entry => entry.class === selectedClass)
+                                    .map((entry, index) => (
+                                        <div key={index} className="text-right p-2 border-b">
+                                            {entry.date} - {' '}
+                                            {entry.type === 'earned'
+                                                ? `הרוויח ${entry.points} נקודות`
+                                                : `קנה ${entry.reward} (-${Math.abs(entry.points)} נקודות)`}
+                                        </div>
+                                    ))}
+                            </div>
                         </div>
                     )}
                 </div>
