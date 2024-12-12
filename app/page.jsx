@@ -92,8 +92,15 @@ export default function HomePage() {
 
     return (
         <div className="max-w-6xl mx-auto py-8 px-4">
-            <h1 className="text-4xl font-bold text-right mb-8">מערכת בנק המילים</h1>
-    // ... שאר הקוד
+            <div className="flex justify-between items-center mb-8">
+                <a
+                    href="/dashboard"
+                    className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded"
+                >
+                    דשבורד מנהלת
+                </a>
+                <h1 className="text-4xl font-bold">מערכת בנק המילים</h1>
+            </div>
             <div className="mb-8">
                 <label className="block text-lg mb-2 text-right">בחר כיתה:</label>
                 <select
