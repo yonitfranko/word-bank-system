@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
 
 export default function HomePage() {
     const [selectedClass, setSelectedClass] = useState('');
@@ -7,7 +8,20 @@ export default function HomePage() {
     const [history, setHistory] = useState([]);
     const classes = ['א1', 'א2', 'א3', 'א4', 'ב1', 'ב2', 'ב3', 'ב4', 'ג1', 'ג2', 'ג3', 'ג4',
         'ד1', 'ד2', 'ד3', 'ד4', 'ה1', 'ה2', 'ה3', 'ה4', 'ו1', 'ו2', 'ו3', 'ו4'];
-
+    useEffect(() => {
+        async function loadData() {
+            try {
+                const response = await fetch('/api/points');
+                const data = await response.json();
+                if (data) {
+                    setPoints(data);
+                }
+            } catch (error) {
+                console.error('Error loading points:', error);
+            }
+        }
+        loadData();
+    }, []);
     const REWARDS = [
         { id: 1, name: 'שעת יצירה', cost: 50 },
         { id: 2, name: 'זמן משחק כיתתי', cost: 60 },
@@ -30,16 +44,38 @@ export default function HomePage() {
         { id: 19, name: 'פארק חבלים', cost: 1000 }
     ];
 
-    const addPoints = (classId, amount) => {
-        setPoints(prev => {
-            const newPoints = {
-                ...prev,
-                [classId]: (prev[classId] || 0) + amount
-            };
-            // שמירה ב-localStorage
-            localStorage.setItem('points', JSON.stringify(newPoints));
-            return newPoints;
-        });
+    const addPoints = async (classId, amount) => {
+        try {
+            const response = await fetch('/api/points', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    classId,
+                    amount,
+                    date: new Date().toISOString()
+                })
+            });
+
+            if (response.ok) {
+                setPoints(prev => ({
+                    ...prev,
+                    [classId]: (prev[classId] || 0) + amount
+                }));
+
+                setHistory(prev => [...prev, {
+                    date: new Date().toLocaleDateString('he-IL'),
+                    class: classId,
+                    points: amount,
+                    type: 'earned'
+                }]);
+            }
+        } catch (error) {
+            console.error('Error adding points:', error);
+            alert('אירעה שגיאה בהוספת הנקודות');
+        }
+    };
 
         setHistory(prev => {
             const newHistory = [...prev, {
