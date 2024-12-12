@@ -1,36 +1,36 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 export default function DashboardPage() {
-    const [points, setPoints] = useState({});
-    const [history, setHistory] = useState([]);
-    const [isClient, setIsClient] = useState(false);
+    const [data, setData] = React.useState({
+        points: {},
+        history: []
+    });
+    const [isLoading, setIsLoading] = React.useState(true);
 
-    useEffect(() => {
-        setIsClient(true);
-        // בדיקה אם localStorage זמין
+    React.useEffect(() => {
         if (typeof window !== 'undefined') {
-            try {
-                const storedPoints = localStorage.getItem('points');
-                const storedHistory = localStorage.getItem('history');
-
-                if (storedPoints) setPoints(JSON.parse(storedPoints));
-                if (storedHistory) setHistory(JSON.parse(storedHistory));
-            } catch (e) {
-                console.error('Failed to load data from localStorage:', e);
-            }
+            const loadData = () => {
+                try {
+                    const points = JSON.parse(localStorage.getItem('points') || '{}');
+                    const history = JSON.parse(localStorage.getItem('history') || '[]');
+                    setData({ points, history });
+                } catch (e) {
+                    console.error('Failed to load data:', e);
+                }
+                setIsLoading(false);
+            };
+            loadData();
         }
     }, []);
 
-    // מציג טעינה עד שהקומפוננטה מוכנה
-    if (!isClient) {
-        return <div className="p-8 text-center">טוען...</div>;
+    if (isLoading) {
+        return <div className="p-8 text-center">טוען נתונים...</div>;
     }
 
-    // חישוב סטטיסטיקות
-    const totalPoints = Object.values(points).reduce((sum, curr) => sum + curr, 0);
-    const activeClasses = Object.keys(points).length;
-    const totalRewards = history.filter(h => h.type === 'spent').length;
+    const totalPoints = Object.values(data.points).reduce((sum, curr) => sum + curr, 0);
+    const activeClasses = Object.keys(data.points).length;
+    const totalRewards = data.history.filter(h => h.type === 'spent').length;
 
     return (
         <div className="max-w-6xl mx-auto py-8 px-4" dir="rtl">
@@ -62,7 +62,7 @@ export default function DashboardPage() {
             <div className="bg-white p-4 rounded-lg shadow mb-8">
                 <h2 className="text-2xl font-bold mb-4">נקודות לפי כיתה</h2>
                 <div className="grid gap-4">
-                    {Object.entries(points).map(([className, points]) => (
+                    {Object.entries(data.points).map(([className, points]) => (
                         <div key={className} className="flex justify-between items-center p-2 border-b">
                             <span className="font-bold">כיתה {className}</span>
                             <span>{points} נקודות</span>
@@ -74,7 +74,7 @@ export default function DashboardPage() {
             <div className="bg-white p-4 rounded-lg shadow">
                 <h2 className="text-2xl font-bold mb-4">היסטוריית פעילות אחרונה</h2>
                 <div className="space-y-2">
-                    {history.slice(0, 10).map((entry, index) => (
+                    {data.history.slice(0, 10).map((entry, index) => (
                         <div key={index} className="p-2 border-b">
                             {entry.date} - כיתה {entry.class} - {' '}
                             {entry.type === 'earned'
