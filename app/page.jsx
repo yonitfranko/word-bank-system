@@ -45,8 +45,12 @@ export default function HomePage() {
         { id: 19, name: 'פארק חבלים', cost: 1000 }
     ];
 
+    // בדיוק מעל ה-return
     const addPoints = async (classId, amount) => {
         try {
+            // הוספת לוג לבדיקה
+            console.log('Trying to add points:', { classId, amount });
+
             const response = await fetch('/api/points', {
                 method: 'POST',
                 headers: {
@@ -58,6 +62,9 @@ export default function HomePage() {
                     date: new Date().toISOString()
                 })
             });
+
+            // הוספת לוג לבדיקת התשובה
+            console.log('Response:', response);
 
             if (response.ok) {
                 setPoints(prev => ({
@@ -71,10 +78,11 @@ export default function HomePage() {
                     points: amount,
                     type: 'earned'
                 }]);
+            } else {
+                console.error('Failed to add points:', await response.text());
             }
         } catch (error) {
             console.error('Error adding points:', error);
-            alert('אירעה שגיאה בהוספת הנקודות');
         }
     };
 
