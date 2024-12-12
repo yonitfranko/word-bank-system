@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function HomePage() {
     const [selectedClass, setSelectedClass] = useState('');
