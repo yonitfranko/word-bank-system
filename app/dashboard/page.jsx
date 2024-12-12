@@ -4,15 +4,28 @@ import React, { useState, useEffect } from 'react';
 export default function DashboardPage() {
     const [points, setPoints] = useState({});
     const [history, setHistory] = useState([]);
+    const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
-        // טעינת הנתונים רק בצד הלקוח
-        const storedPoints = localStorage.getItem('points');
-        const storedHistory = localStorage.getItem('history');
+        setIsClient(true);
+        // בדיקה אם localStorage זמין
+        if (typeof window !== 'undefined') {
+            try {
+                const storedPoints = localStorage.getItem('points');
+                const storedHistory = localStorage.getItem('history');
 
-        if (storedPoints) setPoints(JSON.parse(storedPoints));
-        if (storedHistory) setHistory(JSON.parse(storedHistory));
+                if (storedPoints) setPoints(JSON.parse(storedPoints));
+                if (storedHistory) setHistory(JSON.parse(storedHistory));
+            } catch (e) {
+                console.error('Failed to load data from localStorage:', e);
+            }
+        }
     }, []);
+
+    // מציג טעינה עד שהקומפוננטה מוכנה
+    if (!isClient) {
+        return <div className="p-8 text-center">טוען...</div>;
+    }
 
     // חישוב סטטיסטיקות
     const totalPoints = Object.values(points).reduce((sum, curr) => sum + curr, 0);
@@ -31,7 +44,6 @@ export default function DashboardPage() {
                 <h1 className="text-4xl font-bold">דשבורד מנהלת</h1>
             </div>
 
-            {/* סיכום נתונים */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div className="bg-blue-50 p-4 rounded-lg text-center">
                     <h3 className="text-lg font-bold">סך הכל נקודות</h3>
@@ -47,7 +59,6 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* נתונים לפי כיתה */}
             <div className="bg-white p-4 rounded-lg shadow mb-8">
                 <h2 className="text-2xl font-bold mb-4">נקודות לפי כיתה</h2>
                 <div className="grid gap-4">
@@ -60,7 +71,6 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* היסטוריית פעילות */}
             <div className="bg-white p-4 rounded-lg shadow">
                 <h2 className="text-2xl font-bold mb-4">היסטוריית פעילות אחרונה</h2>
                 <div className="space-y-2">
