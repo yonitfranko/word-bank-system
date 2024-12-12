@@ -93,7 +93,7 @@ export default function HomePage() {
     return (
         <div className="max-w-6xl mx-auto py-8 px-4">
             <h1 className="text-4xl font-bold text-right mb-8">מערכת בנק המילים</h1>
-
+    // ... שאר הקוד
             <div className="mb-8">
                 <label className="block text-lg mb-2 text-right">בחר כיתה:</label>
                 <select
