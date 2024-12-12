@@ -47,26 +47,32 @@ export default function HomePage() {
 
     // בדיוק מעל ה-return
     const addPoints = async (classId, amount) => {
+        console.log('=== Starting addPoints ===');
         try {
-            // הוספת לוג לבדיקה
-            console.log('Trying to add points:', { classId, amount });
+            console.log(`Adding ${amount} points to class ${classId}`);
 
-            const response = await fetch('/api/points', {
+            const apiUrl = '/api/points';
+            console.log('Calling API:', apiUrl);
+
+            const postData = {
+                classId,
+                amount,
+                date: new Date().toISOString()
+            };
+            console.log('With data:', postData);
+
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    classId,
-                    amount,
-                    date: new Date().toISOString()
-                })
+                body: JSON.stringify(postData)
             });
 
-            // הוספת לוג לבדיקת התשובה
-            console.log('Response:', response);
+            console.log('Got response:', response.status);
 
             if (response.ok) {
+                console.log('Request successful');
                 setPoints(prev => ({
                     ...prev,
                     [classId]: (prev[classId] || 0) + amount
@@ -79,11 +85,13 @@ export default function HomePage() {
                     type: 'earned'
                 }]);
             } else {
-                console.error('Failed to add points:', await response.text());
+                const errorText = await response.text();
+                console.error('Request failed:', errorText);
             }
         } catch (error) {
-            console.error('Error adding points:', error);
+            console.error('Error in addPoints:', error);
         }
+        console.log('=== Finished addPoints ===');
     };
 
     const buyReward = async (reward) => {
