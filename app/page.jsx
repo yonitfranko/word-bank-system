@@ -1,49 +1,34 @@
 'use client';
 import React, { useState } from 'react';
 
-// רשימת הפרסים המלאה
-const REWARDS = [
-    { id: 1, name: 'שעת יצירה', cost: 50 },
-    { id: 2, name: 'זמן משחק כיתתי', cost: 60 },
-    { id: 3, name: 'זמן מחשבים', cost: 70 },
-    { id: 4, name: 'סרט עם פופקורן', cost: 80 },
-    { id: 5, name: 'הורה מפעיל', cost: 90 },
-    { id: 6, name: 'שיעור לבחירה', cost: 100 },
-    { id: 7, name: 'פעילות עם הורים', cost: 150 },
-    { id: 8, name: 'שיעור חופשי', cost: 200 },
-    { id: 9, name: 'ארטיק/שלוק/גלידה', cost: 250 },
-    { id: 10, name: 'העברת פעילות לכיתה אחרת', cost: 300 },
-    { id: 11, name: 'ארוחה כיתתית בחצר ביהס', cost: 350 },
-    { id: 12, name: 'יום ישיבה חופשית', cost: 400 },
-    { id: 13, name: 'למידה מחוץ לכיתה', cost: 450 },
-    { id: 14, name: 'משחק קופסה לכיתה', cost: 500 },
-    { id: 15, name: 'יום ללא תיק', cost: 600 },
-    { id: 16, name: 'סרט במדיה טק', cost: 700 },
-    { id: 17, name: 'פעילות גיבוש כיתתית', cost: 800 },
-    { id: 18, name: 'פעילות באולינג', cost: 900 },
-    { id: 19, name: 'פארק חבלים', cost: 1000 }
-];
-
-// יצירת רשימת כיתות מלאה
-const generateClasses = () => {
-    const grades = ['א', 'ב', 'ג', 'ד', 'ה', 'ו'];
-    const classNumbers = ['1', '2', '3', '4'];
-    const classes = [];
-
-    grades.forEach(grade => {
-        classNumbers.forEach(number => {
-            classes.push(`${grade}${number}`);
-        });
-    });
-
-    return classes;
-};
-
 export default function HomePage() {
     const [selectedClass, setSelectedClass] = useState('');
     const [points, setPoints] = useState({});
     const [history, setHistory] = useState([]);
-    const classes = generateClasses();
+    const classes = ['א1', 'א2', 'א3', 'א4', 'ב1', 'ב2', 'ב3', 'ב4', 'ג1', 'ג2', 'ג3', 'ג4',
+        'ד1', 'ד2', 'ד3', 'ד4', 'ה1', 'ה2', 'ה3', 'ה4', 'ו1', 'ו2', 'ו3', 'ו4'];
+
+    const REWARDS = [
+        { id: 1, name: 'שעת יצירה', cost: 50 },
+        { id: 2, name: 'זמן משחק כיתתי', cost: 60 },
+        { id: 3, name: 'זמן מחשבים', cost: 70 },
+        { id: 4, name: 'סרט עם פופקורן', cost: 80 },
+        { id: 5, name: 'הורה מפעיל', cost: 90 },
+        { id: 6, name: 'שיעור לבחירה', cost: 100 },
+        { id: 7, name: 'פעילות עם הורים', cost: 150 },
+        { id: 8, name: 'שיעור חופשי', cost: 200 },
+        { id: 9, name: 'ארטיק/שלוק/גלידה', cost: 250 },
+        { id: 10, name: 'העברת פעילות לכיתה אחרת', cost: 300 },
+        { id: 11, name: 'ארוחה כיתתית בחצר ביהס', cost: 350 },
+        { id: 12, name: 'יום ישיבה חופשית', cost: 400 },
+        { id: 13, name: 'למידה מחוץ לכיתה', cost: 450 },
+        { id: 14, name: 'משחק קופסה לכיתה', cost: 500 },
+        { id: 15, name: 'יום ללא תיק', cost: 600 },
+        { id: 16, name: 'סרט במדיה טק', cost: 700 },
+        { id: 17, name: 'פעילות גיבוש כיתתית', cost: 800 },
+        { id: 18, name: 'פעילות באולינג', cost: 900 },
+        { id: 19, name: 'פארק חבלים', cost: 1000 }
+    ];
 
     const addPoints = (classId, amount) => {
         setPoints(prev => {
@@ -51,16 +36,21 @@ export default function HomePage() {
                 ...prev,
                 [classId]: (prev[classId] || 0) + amount
             };
-            // עדכון מיידי של הנקודות
-            setTimeout(() => {
-                setHistory(prevHistory => [...prevHistory, {
-                    date: new Date().toLocaleDateString('he-IL'),
-                    class: classId,
-                    points: amount,
-                    type: 'earned'
-                }]);
-            }, 0);
+            // שמירה ב-localStorage
+            localStorage.setItem('points', JSON.stringify(newPoints));
             return newPoints;
+        });
+
+        setHistory(prev => {
+            const newHistory = [...prev, {
+                date: new Date().toLocaleDateString('he-IL'),
+                class: classId,
+                points: amount,
+                type: 'earned'
+            }];
+            // שמירה ב-localStorage
+            localStorage.setItem('history', JSON.stringify(newHistory));
+            return newHistory;
         });
     };
 
@@ -68,23 +58,28 @@ export default function HomePage() {
         if (!selectedClass) return;
         const currentPoints = points[selectedClass] || 0;
         if (currentPoints >= reward.cost) {
-            // עדכון מיידי של הנקודות
-            setPoints(prev => ({
-                ...prev,
-                [selectedClass]: currentPoints - reward.cost
-            }));
+            setPoints(prev => {
+                const newPoints = {
+                    ...prev,
+                    [selectedClass]: currentPoints - reward.cost
+                };
+                localStorage.setItem('points', JSON.stringify(newPoints));
+                return newPoints;
+            });
 
-            // עדכון ההיסטוריה בנפרד
-            setTimeout(() => {
-                setHistory(prev => [...prev, {
+            setHistory(prev => {
+                const newHistory = [...prev, {
                     date: new Date().toLocaleDateString('he-IL'),
                     class: selectedClass,
                     points: -reward.cost,
                     reward: reward.name,
                     type: 'spent'
-                }]);
-                alert(`פרס נקנה בהצלחה: ${reward.name}`);
-            }, 0);
+                }];
+                localStorage.setItem('history', JSON.stringify(newHistory));
+                return newHistory;
+            });
+
+            alert(`פרס נקנה בהצלחה: ${reward.name}`);
         } else {
             alert('אין מספיק נקודות לקניית הפרס');
         }
@@ -101,6 +96,7 @@ export default function HomePage() {
                 </a>
                 <h1 className="text-4xl font-bold">מערכת בנק המילים</h1>
             </div>
+
             <div className="mb-8">
                 <label className="block text-lg mb-2 text-right">בחר כיתה:</label>
                 <select
