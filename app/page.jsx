@@ -1,6 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-
+import React, { useState } from 'react';
 
 export default function HomePage() {
     const [selectedClass, setSelectedClass] = useState('');
@@ -8,6 +7,7 @@ export default function HomePage() {
     const [history, setHistory] = useState([]);
     const classes = ['א1', 'א2', 'א3', 'א4', 'ב1', 'ב2', 'ב3', 'ב4', 'ג1', 'ג2', 'ג3', 'ג4',
         'ד1', 'ד2', 'ד3', 'ד4', 'ה1', 'ה2', 'ה3', 'ה4', 'ו1', 'ו2', 'ו3', 'ו4'];
+
     useEffect(() => {
         async function loadData() {
             try {
@@ -22,6 +22,7 @@ export default function HomePage() {
         }
         loadData();
     }, []);
+
     const REWARDS = [
         { id: 1, name: 'שעת יצירה', cost: 50 },
         { id: 2, name: 'זמן משחק כיתתי', cost: 60 },
@@ -77,45 +78,44 @@ export default function HomePage() {
         }
     };
 
-        setHistory(prev => {
-            const newHistory = [...prev, {
-                date: new Date().toLocaleDateString('he-IL'),
-                class: classId,
-                points: amount,
-                type: 'earned'
-            }];
-            // שמירה ב-localStorage
-            localStorage.setItem('history', JSON.stringify(newHistory));
-            return newHistory;
-        });
-    };
-
-    const buyReward = (reward) => {
+    const buyReward = async (reward) => {
         if (!selectedClass) return;
         const currentPoints = points[selectedClass] || 0;
         if (currentPoints >= reward.cost) {
-            setPoints(prev => {
-                const newPoints = {
-                    ...prev,
-                    [selectedClass]: currentPoints - reward.cost
-                };
-                localStorage.setItem('points', JSON.stringify(newPoints));
-                return newPoints;
-            });
+            try {
+                const response = await fetch('/api/points', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        classId: selectedClass,
+                        amount: -reward.cost,
+                        reward: reward.name,
+                        date: new Date().toISOString()
+                    })
+                });
 
-            setHistory(prev => {
-                const newHistory = [...prev, {
-                    date: new Date().toLocaleDateString('he-IL'),
-                    class: selectedClass,
-                    points: -reward.cost,
-                    reward: reward.name,
-                    type: 'spent'
-                }];
-                localStorage.setItem('history', JSON.stringify(newHistory));
-                return newHistory;
-            });
+                if (response.ok) {
+                    setPoints(prev => ({
+                        ...prev,
+                        [selectedClass]: currentPoints - reward.cost
+                    }));
 
-            alert(`פרס נקנה בהצלחה: ${reward.name}`);
+                    setHistory(prev => [...prev, {
+                        date: new Date().toLocaleDateString('he-IL'),
+                        class: selectedClass,
+                        points: -reward.cost,
+                        reward: reward.name,
+                        type: 'spent'
+                    }]);
+
+                    alert(`פרס נקנה בהצלחה: ${reward.name}`);
+                }
+            } catch (error) {
+                console.error('Error buying reward:', error);
+                alert('אירעה שגיאה בקניית הפרס');
+            }
         } else {
             alert('אין מספיק נקודות לקניית הפרס');
         }
